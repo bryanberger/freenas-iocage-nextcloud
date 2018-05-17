@@ -93,7 +93,7 @@ then
   exit 1
 fi
 
-if [ "${DB_PATH}" = "${POOL_PATH}" ] || [ "${FILES_PATH}" = "${POOL_PATH}" ] || [ "${PORTS_PATH}" = "${POOL_PATH}" ] 
+if [ "${DB_PATH}" = "${POOL_PATH}" ] || [ "${FILES_PATH}" = "${POOL_PATH}" ] || [ "${PORTS_PATH}" = "${POOL_PATH}" ]
 then
   echo "DB_PATH, FILES_PATH, and PORTS_PATH must all be different"
   echo "from POOL_PATH!"
@@ -111,14 +111,14 @@ fi
 cat <<__EOF__ >/tmp/pkg.json
 {
   "pkgs":[
-  "nano","curl","sudo","mariadb101-server","redis","php72-ctype",
+  "nano","curl","sudo","mariadb102-server","redis","php72-ctype",
   "php72-dom","php72-gd","php72-iconv","php72-json","php72-mbstring",
   "php72-posix","php72-simplexml","php72-xmlreader","php72-xmlwriter",
   "php72-zip","php72-zlib","php72-pdo_mysql","php72-hash","php72-xml",
   "php72-session","php72-mysqli","php72-wddx","php72-xsl","php72-filter",
   "php72-curl","php72-fileinfo","php72-bz2","php72-intl","php72-openssl",
   "php72-ldap","php72-ftp","php72-imap","php72-exif","php72-gmp",
-  "php72-memcache","php72-opcache","php72-pcntl","php72","bash",
+  "php72-memcache","php72-opcache","php72-pcntl","php72","mod_php72","bash",
   "p5-Locale-gettext","help2man","texinfo","m4","autoconf","socat","git"
   ]
 }
@@ -183,6 +183,12 @@ iocage exec ${JAIL_NAME} sed -i '' "s/jailiphere/${JAIL_IP}/" /usr/local/etc/apa
 iocage exec ${JAIL_NAME} sed -i '' "s/yourhostnamehere/${HOST_NAME}/" /usr/local/etc/apache24/httpd.conf
 iocage exec ${JAIL_NAME} sed -i '' "s/#skip-networking/skip-networking/" /var/db/mysql/my.cnf
 iocage exec ${JAIL_NAME} sed -i '' "s|mytimezone|${TIME_ZONE}|" /usr/local/etc/php.ini
+
+# Edit redis config settings
+iocage exec ${JAIL_NAME} sed -i '' "s/APCu/Redis/" /usr/local/www/apache24/data/nextcloud/config/config.php
+iocage exec ${JAIL_NAME} sed -i '' "s/=> 'localhost'/=> 'localhost', 1 => '${HOST_NAME}'/" /usr/local/www/apache24/data/nextcloud/config/config.php
+iocage exec ${JAIL_NAME} sed -i '' "s/);/, 'redis' => array ('host' => '\/tmp\/redis.sock', 'port' => 0, 'timeout' => 0.0));/" /usr/local/www/apache24/data/nextcloud/config/config.php
+
 # iocage exec ${JAIL_NAME} openssl dhparam -out /usr/local/etc/pki/tls/private/dhparams_4096.pem 4096
 iocage restart ${JAIL_NAME}
 
